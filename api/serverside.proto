@@ -1,0 +1,19 @@
+syntax = 'proto3';
+
+package serverside;
+
+option  go_package = "./serverside";
+
+service AvgWeights {
+  rpc AddMyWeights(AddMyWeightsRequest) returns (AddMyWeightsResponse) {}
+}
+
+message AddMyWeightsRequest{
+  string client_id = 1;
+  message Layer {
+    repeated double weights = 1;
+  }
+  map<string, Layer> layers = 2;
+}
+
+message AddMyWeightsResponse {}
