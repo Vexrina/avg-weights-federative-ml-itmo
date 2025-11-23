@@ -23,6 +23,7 @@ type ActualLayers struct {
 func MapDomainReqToDB(dom model.AddMyWeightsDomainReq, updatedAt time.Time) ActualLayers {
 	res := ActualLayers{
 		ClientID:  dom.ClientID,
+		CreatedAt: updatedAt,
 		UpdatedAt: updatedAt,
 	}
 	for layerName, layer := range dom.Layers {

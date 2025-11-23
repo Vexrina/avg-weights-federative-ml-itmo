@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS actual_layers_by_client_id (
     layer3 Array(Float64),
     layer4 Array(Float64),
     layer5 Array(Float64)
-    ) ENGINE = MergeTree()
+) ENGINE = ReplacingMergeTree(updatedAt) -- чтобы апсертить записи использую ReplacingMergeTree
 ORDER BY (clientID, createdAt);
