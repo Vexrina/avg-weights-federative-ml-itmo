@@ -1,13 +1,13 @@
 package app
 
 import (
-	"avg_weights_fed_ml_itmo/internal/app/model"
 	"context"
-
-	"avg_weights_fed_ml_itmo/pkg/serverside"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+
+	"avg_weights_fed_ml_itmo/internal/app/model"
+	"avg_weights_fed_ml_itmo/pkg/serverside"
 )
 
 const layersSize = 5

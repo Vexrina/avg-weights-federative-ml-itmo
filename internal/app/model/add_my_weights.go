@@ -1,9 +1,9 @@
 package model
 
 import (
-	"avg_weights_fed_ml_itmo/pkg/serverside"
-
 	"github.com/google/uuid"
+
+	"avg_weights_fed_ml_itmo/pkg/serverside"
 )
 
 type AddMyWeightsDomainReq struct {

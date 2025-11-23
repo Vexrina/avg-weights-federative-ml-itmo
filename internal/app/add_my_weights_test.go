@@ -1,9 +1,6 @@
 package app
 
 import (
-	"avg_weights_fed_ml_itmo/internal/app/mocks"
-	"avg_weights_fed_ml_itmo/internal/app/model"
-	"avg_weights_fed_ml_itmo/pkg/serverside"
 	"context"
 	"errors"
 	"testing"
@@ -12,6 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+
+	"avg_weights_fed_ml_itmo/internal/app/mocks"
+	"avg_weights_fed_ml_itmo/internal/app/model"
+	"avg_weights_fed_ml_itmo/pkg/serverside"
 )
 
 func TestService_AddMyWeights(t *testing.T) {

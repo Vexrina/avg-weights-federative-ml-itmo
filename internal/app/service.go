@@ -1,9 +1,10 @@
 package app
 
 import (
+	"context"
+
 	"avg_weights_fed_ml_itmo/internal/app/model"
 	"avg_weights_fed_ml_itmo/pkg/serverside"
-	"context"
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock_upser_weights_usecase.go -package=mocks UpsertWeightsUsecase

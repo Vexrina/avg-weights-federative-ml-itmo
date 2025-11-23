@@ -7,8 +7,8 @@ services:
       - "9002:9000"  # Native protocol
     environment:
       CLICKHOUSE_DB: default
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_USER: root
+      CLICKHOUSE_PASSWORD: "root"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     healthcheck:
