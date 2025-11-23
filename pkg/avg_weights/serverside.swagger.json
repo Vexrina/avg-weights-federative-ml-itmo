@@ -17,6 +17,18 @@
   ],
   "paths": {},
   "definitions": {
+    "AddMyWeightsRequestLayer": {
+      "type": "object",
+      "properties": {
+        "weights": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
