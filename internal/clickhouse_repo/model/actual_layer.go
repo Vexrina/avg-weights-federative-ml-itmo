@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/uptrace/go-clickhouse/ch"
 )
 
-type ActualLayers struct {
+type ActualLayersByClientId struct {
+	ch.CHModel `ch:"table:actual_layers_by_client_id"`
+
 	ClientID  uuid.UUID `ch:"clientID"`
 	CreatedAt time.Time `ch:"createdAt"`
 	UpdatedAt time.Time `ch:"updatedAt"`
@@ -20,8 +23,8 @@ type ActualLayers struct {
 	Layer5    []float64 `ch:"layer5"`
 }
 
-func MapDomainReqToDB(dom model.AddMyWeightsDomainReq, updatedAt time.Time) ActualLayers {
-	res := ActualLayers{
+func MapDomainReqToDB(dom model.AddMyWeightsDomainReq, updatedAt time.Time) ActualLayersByClientId {
+	res := ActualLayersByClientId{
 		ClientID:  dom.ClientID,
 		CreatedAt: updatedAt,
 		UpdatedAt: updatedAt,

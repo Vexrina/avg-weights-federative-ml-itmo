@@ -6,6 +6,7 @@ toolchain go1.24.10
 
 require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
+	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
 	github.com/uptrace/go-clickhouse v0.3.1

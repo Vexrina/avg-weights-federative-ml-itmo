@@ -10,7 +10,7 @@ import (
 
 type (
 	WeightsRepo interface {
-		UpsertActualWeights(ctx context.Context, dbReq dbModel.ActualLayers) error
+		UpsertActualWeights(ctx context.Context, dbReq dbModel.ActualLayersByClientId) error
 		AppendHistoryWeights(ctx context.Context, dbReq dbModel.HistoryLayers) error
 	}
 	Upserter struct {

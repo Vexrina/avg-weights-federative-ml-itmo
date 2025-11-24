@@ -1,12 +1,13 @@
 package clickhouse_repo
 
 import (
-	dbModel "avg_weights_fed_ml_itmo/internal/clickhouse_repo/model"
 	"context"
 	"log"
 	"time"
 
 	"github.com/uptrace/go-clickhouse/ch"
+
+	dbModel "avg_weights_fed_ml_itmo/internal/clickhouse_repo/model"
 )
 
 type weightRepository struct {
@@ -30,8 +31,8 @@ func NewWeightRepo(ctx context.Context) weightRepository {
 	return weightRepository{db: db}
 }
 
-func (wr *weightRepository) UpsertActualWeights(ctx context.Context, dbReq dbModel.ActualLayers) error {
-	stmt := wr.db.NewInsert().Model(&dbReq).Table("actual_layers_by_client_id")
+func (wr *weightRepository) UpsertActualWeights(ctx context.Context, dbReq dbModel.ActualLayersByClientId) error {
+	stmt := wr.db.NewInsert().Model(&dbReq)
 
 	if _, err := stmt.Exec(ctx); err != nil {
 		return err
@@ -40,7 +41,7 @@ func (wr *weightRepository) UpsertActualWeights(ctx context.Context, dbReq dbMod
 }
 
 func (wr *weightRepository) AppendHistoryWeights(ctx context.Context, dbReq dbModel.HistoryLayers) error {
-	stmt := wr.db.NewInsert().Model(&dbReq).Table("history_layers_by_client_id")
+	stmt := wr.db.NewInsert().Model(&dbReq)
 	if _, err := stmt.Exec(ctx); err != nil {
 		return err
 	}
