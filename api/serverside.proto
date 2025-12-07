@@ -9,11 +9,12 @@ service AvgWeights {
 }
 
 message AddMyWeightsRequest{
+  // Айдишник пользака
   string client_id = 1;
-  message Layer {
-    repeated double weights = 1;
-  }
-  map<string, Layer> layers = 2;
+  // torch.save output
+  bytes weights = 2;
+  // для weighted FedAvg (сколько примеров было у этого конкретного пользака)
+  uint64 num_examples = 3;
 }
 
 message AddMyWeightsResponse {}

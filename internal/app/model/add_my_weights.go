@@ -7,17 +7,15 @@ import (
 )
 
 type AddMyWeightsDomainReq struct {
-	ClientID uuid.UUID
-	Layers   map[string][]float64
+	ClientID    uuid.UUID
+	Weights     []byte
+	NumExamples uint64
 }
 
 func MapAddMyWeightsToDomain(request *serverside.AddMyWeightsRequest) AddMyWeightsDomainReq {
-	l := make(map[string][]float64)
-	for layerName, layer := range request.Layers {
-		l[layerName] = layer.Weights
-	}
 	return AddMyWeightsDomainReq{
-		ClientID: uuid.MustParse(request.ClientId),
-		Layers:   l,
+		ClientID:    uuid.MustParse(request.ClientId),
+		Weights:     request.Weights,
+		NumExamples: request.NumExamples,
 	}
 }

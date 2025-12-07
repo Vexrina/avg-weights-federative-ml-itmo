@@ -22,9 +22,13 @@ const (
 )
 
 type AddMyWeightsRequest struct {
-	state         protoimpl.MessageState                `protogen:"open.v1"`
-	ClientId      string                                `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	Layers        map[string]*AddMyWeightsRequest_Layer `protobuf:"bytes,2,rep,name=layers,proto3" json:"layers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Айдишник пользака
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// torch.save output
+	Weights []byte `protobuf:"bytes,2,opt,name=weights,proto3" json:"weights,omitempty"`
+	// для weighted FedAvg (сколько примеров было у этого конкретного пользака)
+	NumExamples   uint64 `protobuf:"varint,3,opt,name=num_examples,json=numExamples,proto3" json:"num_examples,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -66,11 +70,18 @@ func (x *AddMyWeightsRequest) GetClientId() string {
 	return ""
 }
 
-func (x *AddMyWeightsRequest) GetLayers() map[string]*AddMyWeightsRequest_Layer {
+func (x *AddMyWeightsRequest) GetWeights() []byte {
 	if x != nil {
-		return x.Layers
+		return x.Weights
 	}
 	return nil
+}
+
+func (x *AddMyWeightsRequest) GetNumExamples() uint64 {
+	if x != nil {
+		return x.NumExamples
+	}
+	return 0
 }
 
 type AddMyWeightsResponse struct {
@@ -109,64 +120,16 @@ func (*AddMyWeightsResponse) Descriptor() ([]byte, []int) {
 	return file_api_serverside_proto_rawDescGZIP(), []int{1}
 }
 
-type AddMyWeightsRequest_Layer struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Weights       []float64              `protobuf:"fixed64,1,rep,packed,name=weights,proto3" json:"weights,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AddMyWeightsRequest_Layer) Reset() {
-	*x = AddMyWeightsRequest_Layer{}
-	mi := &file_api_serverside_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AddMyWeightsRequest_Layer) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AddMyWeightsRequest_Layer) ProtoMessage() {}
-
-func (x *AddMyWeightsRequest_Layer) ProtoReflect() protoreflect.Message {
-	mi := &file_api_serverside_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AddMyWeightsRequest_Layer.ProtoReflect.Descriptor instead.
-func (*AddMyWeightsRequest_Layer) Descriptor() ([]byte, []int) {
-	return file_api_serverside_proto_rawDescGZIP(), []int{0, 0}
-}
-
-func (x *AddMyWeightsRequest_Layer) GetWeights() []float64 {
-	if x != nil {
-		return x.Weights
-	}
-	return nil
-}
-
 var File_api_serverside_proto protoreflect.FileDescriptor
 
 const file_api_serverside_proto_rawDesc = "" +
 	"\n" +
 	"\x14api/serverside.proto\x12\n" +
-	"serverside\"\xfc\x01\n" +
+	"serverside\"o\n" +
 	"\x13AddMyWeightsRequest\x12\x1b\n" +
-	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12C\n" +
-	"\x06layers\x18\x02 \x03(\v2+.serverside.AddMyWeightsRequest.LayersEntryR\x06layers\x1a!\n" +
-	"\x05Layer\x12\x18\n" +
-	"\aweights\x18\x01 \x03(\x01R\aweights\x1a`\n" +
-	"\vLayersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12;\n" +
-	"\x05value\x18\x02 \x01(\v2%.serverside.AddMyWeightsRequest.LayerR\x05value:\x028\x01\"\x16\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x18\n" +
+	"\aweights\x18\x02 \x01(\fR\aweights\x12!\n" +
+	"\fnum_examples\x18\x03 \x01(\x04R\vnumExamples\"\x16\n" +
 	"\x14AddMyWeightsResponse2a\n" +
 	"\n" +
 	"AvgWeights\x12S\n" +
@@ -184,23 +147,19 @@ func file_api_serverside_proto_rawDescGZIP() []byte {
 	return file_api_serverside_proto_rawDescData
 }
 
-var file_api_serverside_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_api_serverside_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_api_serverside_proto_goTypes = []any{
-	(*AddMyWeightsRequest)(nil),       // 0: serverside.AddMyWeightsRequest
-	(*AddMyWeightsResponse)(nil),      // 1: serverside.AddMyWeightsResponse
-	(*AddMyWeightsRequest_Layer)(nil), // 2: serverside.AddMyWeightsRequest.Layer
-	nil,                               // 3: serverside.AddMyWeightsRequest.LayersEntry
+	(*AddMyWeightsRequest)(nil),  // 0: serverside.AddMyWeightsRequest
+	(*AddMyWeightsResponse)(nil), // 1: serverside.AddMyWeightsResponse
 }
 var file_api_serverside_proto_depIdxs = []int32{
-	3, // 0: serverside.AddMyWeightsRequest.layers:type_name -> serverside.AddMyWeightsRequest.LayersEntry
-	2, // 1: serverside.AddMyWeightsRequest.LayersEntry.value:type_name -> serverside.AddMyWeightsRequest.Layer
-	0, // 2: serverside.AvgWeights.AddMyWeights:input_type -> serverside.AddMyWeightsRequest
-	1, // 3: serverside.AvgWeights.AddMyWeights:output_type -> serverside.AddMyWeightsResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: serverside.AvgWeights.AddMyWeights:input_type -> serverside.AddMyWeightsRequest
+	1, // 1: serverside.AvgWeights.AddMyWeights:output_type -> serverside.AddMyWeightsResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_api_serverside_proto_init() }
@@ -214,7 +173,7 @@ func file_api_serverside_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_serverside_proto_rawDesc), len(file_api_serverside_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -1,57 +1,32 @@
 services:
-  clickhouse:
-    image: clickhouse/clickhouse-server:latest
-    container_name: clickhouse
-    ports:
-      - "8123:8123"  # HTTP
-      - "9002:9000"  # Native protocol
+  postgres:
+    container_name: postgre
+    image: postgres:latest
+    restart: always
     environment:
-      CLICKHOUSE_DB: default
-      CLICKHOUSE_USER: root
-      CLICKHOUSE_PASSWORD: "root"
+      POSTGRES_USER: metadata_user
+      POSTGRES_PASSWORD: metadata_pwd
+      POSTGRES_DB: metadata_db
+    ports:
+      - "5433:5432"
     volumes:
-      - clickhouse_data:/var/lib/clickhouse
+      - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8123"]
-      interval: 10s
+      test: [ "CMD-SHELL", "pg_isready -U metadata_user" ]
+      interval: 5s
       timeout: 5s
       retries: 5
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-#    healthcheck:
-#      test: [ "CMD", "zkServer.sh", "status" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-
-
-  kafka:
-    image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
+  migrate:
+    image: migrate/migrate:latest
+    container_name: postgre_migrate
     depends_on:
-      - zookeeper
-#        condition: service_healthy
-    ports:
-      - "9092:9092"
+      postgres:
+        condition: service_healthy
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      DATABASE_URL: postgres://metadata_user:metadata_pwd@postgres:5432/metadata_db?sslmode=disable
+    volumes:
+      - ./migrations:/migrations
+    command: [ "-path", "/migrations", "-database", "postgres://metadata_user:metadata_pwd@postgres:5432/metadata_db?sslmode=disable", "up" ]
 
   minio:
     image: minio/minio:latest
@@ -85,40 +60,6 @@ services:
       mc policy set public local/mybucket;
       "
 
-  redpanda:
-    image: redpandadata/redpanda:latest
-    container_name: redpanda
-    command:
-      - redpanda
-      - start
-      - --overprovisioned
-      - --smp 1
-      - --memory 1G
-      - --reserve-memory 0M
-      - --node-id 1
-      - --check=false
-    ports:
-      - "29092:9092"
-      - "9644:9644"
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://127.0.0.1:9644/v1/health" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 10
-#      start_period: 20s
-
-
-  redpanda-console:
-    image: redpandadata/console:latest
-    container_name: redpanda-console
-    depends_on:
-      - redpanda
-#        condition: service_healthy
-    environment:
-      KAFKA_BROKERS: redpanda:9092
-    ports:
-      - "8080:8080"  # Web UI
-
 volumes:
-  clickhouse_data:
   minio_data:
+  postgres_data:
