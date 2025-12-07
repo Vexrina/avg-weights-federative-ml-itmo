@@ -22,9 +22,13 @@ const (
 )
 
 type AddMyWeightsRequest struct {
-	state         protoimpl.MessageState                `protogen:"open.v1"`
-	ClientId      string                                `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	Layers        map[string]*AddMyWeightsRequest_Layer `protobuf:"bytes,2,rep,name=layers,proto3" json:"layers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Айдишник пользака
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// torch.save output
+	Weights []byte `protobuf:"bytes,2,opt,name=weights,proto3" json:"weights,omitempty"`
+	// для weighted FedAvg (сколько примеров было у этого конкретного пользака)
+	NumExamples   uint64 `protobuf:"varint,3,opt,name=num_examples,json=numExamples,proto3" json:"num_examples,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -66,11 +70,18 @@ func (x *AddMyWeightsRequest) GetClientId() string {
 	return ""
 }
 
-func (x *AddMyWeightsRequest) GetLayers() map[string]*AddMyWeightsRequest_Layer {
+func (x *AddMyWeightsRequest) GetWeights() []byte {
 	if x != nil {
-		return x.Layers
+		return x.Weights
 	}
 	return nil
+}
+
+func (x *AddMyWeightsRequest) GetNumExamples() uint64 {
+	if x != nil {
+		return x.NumExamples
+	}
+	return 0
 }
 
 type AddMyWeightsResponse struct {
@@ -109,27 +120,26 @@ func (*AddMyWeightsResponse) Descriptor() ([]byte, []int) {
 	return file_api_serverside_proto_rawDescGZIP(), []int{1}
 }
 
-type AddMyWeightsRequest_Layer struct {
+type GetReleaseWeightsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Weights       []float64              `protobuf:"fixed64,1,rep,packed,name=weights,proto3" json:"weights,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AddMyWeightsRequest_Layer) Reset() {
-	*x = AddMyWeightsRequest_Layer{}
+func (x *GetReleaseWeightsRequest) Reset() {
+	*x = GetReleaseWeightsRequest{}
 	mi := &file_api_serverside_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AddMyWeightsRequest_Layer) String() string {
+func (x *GetReleaseWeightsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddMyWeightsRequest_Layer) ProtoMessage() {}
+func (*GetReleaseWeightsRequest) ProtoMessage() {}
 
-func (x *AddMyWeightsRequest_Layer) ProtoReflect() protoreflect.Message {
+func (x *GetReleaseWeightsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_serverside_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -141,16 +151,62 @@ func (x *AddMyWeightsRequest_Layer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddMyWeightsRequest_Layer.ProtoReflect.Descriptor instead.
-func (*AddMyWeightsRequest_Layer) Descriptor() ([]byte, []int) {
-	return file_api_serverside_proto_rawDescGZIP(), []int{0, 0}
+// Deprecated: Use GetReleaseWeightsRequest.ProtoReflect.Descriptor instead.
+func (*GetReleaseWeightsRequest) Descriptor() ([]byte, []int) {
+	return file_api_serverside_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *AddMyWeightsRequest_Layer) GetWeights() []float64 {
+// я пока хз как лучше, прям веса отдавать или просто ссылку на минио.
+type GetReleaseWeightsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Weights       []byte                 `protobuf:"bytes,1,opt,name=weights,proto3" json:"weights,omitempty"`
+	LinkToMinio   string                 `protobuf:"bytes,2,opt,name=link_to_minio,json=linkToMinio,proto3" json:"link_to_minio,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReleaseWeightsResponse) Reset() {
+	*x = GetReleaseWeightsResponse{}
+	mi := &file_api_serverside_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReleaseWeightsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReleaseWeightsResponse) ProtoMessage() {}
+
+func (x *GetReleaseWeightsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_serverside_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReleaseWeightsResponse.ProtoReflect.Descriptor instead.
+func (*GetReleaseWeightsResponse) Descriptor() ([]byte, []int) {
+	return file_api_serverside_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetReleaseWeightsResponse) GetWeights() []byte {
 	if x != nil {
 		return x.Weights
 	}
 	return nil
+}
+
+func (x *GetReleaseWeightsResponse) GetLinkToMinio() string {
+	if x != nil {
+		return x.LinkToMinio
+	}
+	return ""
 }
 
 var File_api_serverside_proto protoreflect.FileDescriptor
@@ -158,19 +214,20 @@ var File_api_serverside_proto protoreflect.FileDescriptor
 const file_api_serverside_proto_rawDesc = "" +
 	"\n" +
 	"\x14api/serverside.proto\x12\n" +
-	"serverside\"\xfc\x01\n" +
+	"serverside\"o\n" +
 	"\x13AddMyWeightsRequest\x12\x1b\n" +
-	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12C\n" +
-	"\x06layers\x18\x02 \x03(\v2+.serverside.AddMyWeightsRequest.LayersEntryR\x06layers\x1a!\n" +
-	"\x05Layer\x12\x18\n" +
-	"\aweights\x18\x01 \x03(\x01R\aweights\x1a`\n" +
-	"\vLayersEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12;\n" +
-	"\x05value\x18\x02 \x01(\v2%.serverside.AddMyWeightsRequest.LayerR\x05value:\x028\x01\"\x16\n" +
-	"\x14AddMyWeightsResponse2a\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12\x18\n" +
+	"\aweights\x18\x02 \x01(\fR\aweights\x12!\n" +
+	"\fnum_examples\x18\x03 \x01(\x04R\vnumExamples\"\x16\n" +
+	"\x14AddMyWeightsResponse\"\x1a\n" +
+	"\x18GetReleaseWeightsRequest\"Y\n" +
+	"\x19GetReleaseWeightsResponse\x12\x18\n" +
+	"\aweights\x18\x01 \x01(\fR\aweights\x12\"\n" +
+	"\rlink_to_minio\x18\x02 \x01(\tR\vlinkToMinio2\xc5\x01\n" +
 	"\n" +
 	"AvgWeights\x12S\n" +
-	"\fAddMyWeights\x12\x1f.serverside.AddMyWeightsRequest\x1a .serverside.AddMyWeightsResponse\"\x00B\x0eZ\f./serversideb\x06proto3"
+	"\fAddMyWeights\x12\x1f.serverside.AddMyWeightsRequest\x1a .serverside.AddMyWeightsResponse\"\x00\x12b\n" +
+	"\x11GetReleaseWeights\x12$.serverside.GetReleaseWeightsRequest\x1a%.serverside.GetReleaseWeightsResponse\"\x00B\x0eZ\f./serversideb\x06proto3"
 
 var (
 	file_api_serverside_proto_rawDescOnce sync.Once
@@ -188,19 +245,19 @@ var file_api_serverside_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_api_serverside_proto_goTypes = []any{
 	(*AddMyWeightsRequest)(nil),       // 0: serverside.AddMyWeightsRequest
 	(*AddMyWeightsResponse)(nil),      // 1: serverside.AddMyWeightsResponse
-	(*AddMyWeightsRequest_Layer)(nil), // 2: serverside.AddMyWeightsRequest.Layer
-	nil,                               // 3: serverside.AddMyWeightsRequest.LayersEntry
+	(*GetReleaseWeightsRequest)(nil),  // 2: serverside.GetReleaseWeightsRequest
+	(*GetReleaseWeightsResponse)(nil), // 3: serverside.GetReleaseWeightsResponse
 }
 var file_api_serverside_proto_depIdxs = []int32{
-	3, // 0: serverside.AddMyWeightsRequest.layers:type_name -> serverside.AddMyWeightsRequest.LayersEntry
-	2, // 1: serverside.AddMyWeightsRequest.LayersEntry.value:type_name -> serverside.AddMyWeightsRequest.Layer
-	0, // 2: serverside.AvgWeights.AddMyWeights:input_type -> serverside.AddMyWeightsRequest
-	1, // 3: serverside.AvgWeights.AddMyWeights:output_type -> serverside.AddMyWeightsResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: serverside.AvgWeights.AddMyWeights:input_type -> serverside.AddMyWeightsRequest
+	2, // 1: serverside.AvgWeights.GetReleaseWeights:input_type -> serverside.GetReleaseWeightsRequest
+	1, // 2: serverside.AvgWeights.AddMyWeights:output_type -> serverside.AddMyWeightsResponse
+	3, // 3: serverside.AvgWeights.GetReleaseWeights:output_type -> serverside.GetReleaseWeightsResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_api_serverside_proto_init() }

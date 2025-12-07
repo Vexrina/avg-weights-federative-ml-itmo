@@ -4,6 +4,9 @@ deps:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	go get -u github.com/go-jet/jet/v2
+	go install github.com/go-jet/jet/v2/cmd/jet@latest
+	go install go.uber.org/mock/mockgen@latest
 	@echo "Dependencies installed"
 
 
@@ -26,23 +29,11 @@ clean:
 	rm -rf pkg/avg_weights/*.swagger.json
 	@echo "Clean complete"
 
+jet: deps
+	jet -source=postgresql -host=localhost -port=5433 -user=metadata_user -password=metadata_pwd -dbname=metadata_db -schema=public -path=generated/
+
 generate: clean deps proto swagger
 	@echo "Full generation completed"
 
 containers:
 	docker-compose up -d
-
-
-# согласно докеру
-CLICKHOUSE_DB=default
-CLICKHOUSE_USER=root
-CLICKHOUSE_PASSWORD="root"
-
-migration-up:
-	@docker exec -i clickhouse clickhouse-client --user $(CLICKHOUSE_USER) --password $(CLICKHOUSE_PASSWORD) < ./migrations/001_create_actual_layers_by_client_id.up.sql
-	@docker exec -i clickhouse clickhouse-client --user $(CLICKHOUSE_USER) --password $(CLICKHOUSE_PASSWORD) < ./migrations/002_create_history_of_layers_by_client_id.up.sql
-
-migration-down:
-	# делаем откат в обратном порядке, jfyi
-	@docker exec -i clickhouse clickhouse-client --user $(CLICKHOUSE_USER) --password $(CLICKHOUSE_PASSWORD) -q "DROP TABLE IF EXISTS history_of_layers_by_client_id"
-	@docker exec -i clickhouse clickhouse-client --user $(CLICKHOUSE_USER) --password $(CLICKHOUSE_PASSWORD) -q "DROP TABLE IF EXISTS actual_layers_by_client_id"
