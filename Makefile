@@ -11,19 +11,15 @@ deps:
 
 
 proto: deps
-	mkdir -p pkg/avg_weights
+	mkdir -p pkg/serverside
 	protoc --go_out=pkg --go-grpc_out=pkg \
 		api/serverside.proto
 	@echo "Proto files generated"
 
 clean:
 	rm -rf bin/
-	rm -rf pkg/avg_weights/*.pb.go
-	rm -rf pkg/avg_weights/*.swagger.json
+	rm -rf pkg/serverside/*.pb.go
 	@echo "Clean complete"
-
-jet: deps
-	jet -source=postgresql -host=localhost -port=5433 -user=metadata_user -password=metadata_pwd -dbname=metadata_db -schema=public -path=generated/
 
 generate: clean deps proto
 	@echo "Full generation completed"

@@ -12,7 +12,7 @@ service AvgWeights {
 message AddMyWeightsRequest{
   // Айдишник пользака
   string client_id = 1;
-  // torch.save output
+  // torch.save output (delta с глобальными весами!)
   bytes weights = 2;
   // для weighted FedAvg (сколько примеров было у этого конкретного пользака)
   uint64 num_examples = 3;
@@ -25,6 +25,5 @@ message GetReleaseWeightsRequest{}
 
 // я пока хз как лучше, прям веса отдавать или просто ссылку на минио.
 message GetReleaseWeightsResponse {
-  bytes weights = 1;
-  string link_to_minio = 2;
+  string link_to_minio = 1;
 }
