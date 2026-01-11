@@ -16,13 +16,6 @@ proto: deps
 		api/serverside.proto
 	@echo "Proto files generated"
 
-# Генерация swagger/openapi документации
-swagger: proto
-	protoc -Iapi \
-       --openapiv2_out=pkg/avg_weights \
-       --openapiv2_opt logtostderr=true \
-       api/serverside.proto
-
 clean:
 	rm -rf bin/
 	rm -rf pkg/avg_weights/*.pb.go
@@ -32,7 +25,7 @@ clean:
 jet: deps
 	jet -source=postgresql -host=localhost -port=5433 -user=metadata_user -password=metadata_pwd -dbname=metadata_db -schema=public -path=generated/
 
-generate: clean deps proto swagger
+generate: clean deps proto
 	@echo "Full generation completed"
 
 containers:

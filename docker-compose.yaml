@@ -1,33 +1,4 @@
 services:
-  postgres:
-    container_name: postgre
-    image: postgres:latest
-    restart: always
-    environment:
-      POSTGRES_USER: metadata_user
-      POSTGRES_PASSWORD: metadata_pwd
-      POSTGRES_DB: metadata_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U metadata_user" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-  migrate:
-    image: migrate/migrate:latest
-    container_name: postgre_migrate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://metadata_user:metadata_pwd@postgres:5432/metadata_db?sslmode=disable
-    volumes:
-      - ./migrations:/migrations
-    command: [ "-path", "/migrations", "-database", "postgres://metadata_user:metadata_pwd@postgres:5432/metadata_db?sslmode=disable", "up" ]
-
   minio:
     image: minio/minio:latest
     container_name: minio

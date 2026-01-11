@@ -8,7 +8,6 @@ require (
 	github.com/go-jet/jet/v2 v2.14.0
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.6
 	github.com/minio/minio-go/v7 v7.0.97
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0
