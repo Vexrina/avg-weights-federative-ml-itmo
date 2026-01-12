@@ -2,15 +2,20 @@
 package aggregator
 
 import (
+	"avg_weights_fed_ml_itmo/internal/minio_repo"
 	"context"
+	"errors"
 	"log"
 	"time"
+
+	"github.com/minio/minio-go/v7"
 )
 
 type MinioRepo interface {
 	AcquireLock(ctx context.Context) (bool, error)
 	LoadLastAggregationTs(ctx context.Context) (time.Time, error)
-	ListObjectAfter(ctx context.Context, from time.Time) ([]*WeightObject, error)
+	ListObjectAfter(ctx context.Context, from time.Time) ([]*minio_repo.WeightObject, error)
+	LoadLastWeight(ctx context.Context) ([]byte, error)
 	SaveReleaseWeights(ctx context.Context, weights []byte) error
 	SaveLastAggregationTs(ctx context.Context, timestamp time.Time) error
 }
@@ -24,6 +29,7 @@ type (
 		minioRepo     MinioRepo
 		entries       []accumulatorEntry
 		totalExamples uint64
+		pythonPath    string
 	}
 	fedAvgPayload struct {
 		TotalExamples uint64
@@ -34,7 +40,7 @@ type (
 const aggInterval = time.Minute * 10
 
 func NewAggregator(minioRepo MinioRepo) *aggregator {
-	return &aggregator{minioRepo: minioRepo}
+	return &aggregator{minioRepo: minioRepo, pythonPath: "internal/cron/aggregator/"}
 }
 
 func (a *aggregator) Aggregate(ctx context.Context) {
@@ -44,6 +50,7 @@ func (a *aggregator) Aggregate(ctx context.Context) {
 			log.Println("[ERROR] context already done in aggregator")
 			return
 		default:
+			log.Println("[INFO] starting aggregation")
 		}
 
 		// 1. Пытаемся взять lock
@@ -62,9 +69,12 @@ func (a *aggregator) Aggregate(ctx context.Context) {
 
 		lastTs, err := a.minioRepo.LoadLastAggregationTs(ctx)
 		if err != nil {
-			log.Printf("[ERROR] load last ts failed: %v", err)
-			time.Sleep(time.Minute)
-			continue
+			var respErr minio.ErrorResponse
+			if !(errors.As(err, &respErr) && respErr.Code == "NoSuchKey") {
+				log.Printf("[ERROR] load last ts failed: %v", err)
+				time.Sleep(time.Minute)
+				continue
+			}
 		}
 
 		now := time.Now().UTC()
@@ -76,13 +86,13 @@ func (a *aggregator) Aggregate(ctx context.Context) {
 			continue
 		}
 
-		if err := a.aggregateOnce(ctx, lastTs); err != nil {
+		if err = a.aggregateOnce(ctx, lastTs); err != nil {
 			log.Printf("[ERROR] aggregateOnce failed: %v", err)
 			time.Sleep(time.Minute)
 			continue
 		}
 
-		if err := a.minioRepo.SaveLastAggregationTs(ctx, now); err != nil {
+		if err = a.minioRepo.SaveLastAggregationTs(ctx, now); err != nil {
 			log.Printf("[ERROR] save watermark failed: %v", err)
 			time.Sleep(time.Minute)
 			continue
@@ -118,7 +128,12 @@ func (a *aggregator) aggregateOnce(
 		return nil
 	}
 
-	globalDelta, err := a.finalize(ctx)
+	oldWeights, err := a.minioRepo.LoadLastWeight(ctx)
+	if err != nil {
+		return err
+	}
+
+	globalDelta, err := a.finalize(ctx, oldWeights)
 	if err != nil {
 		return err
 	}

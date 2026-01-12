@@ -8,9 +8,14 @@ import (
 )
 
 //go:generate mockgen -source=service.go -destination=mocks/mock_upser_weights_usecase.go -package=mocks UpsertWeightsUsecase
-type UpsertWeightsUsecase interface {
-	UpsertWeights(ctx context.Context, domainRequest model.AddMyWeightsDomainReq) error
-}
+type (
+	UpsertWeightsUsecase interface {
+		UpsertWeights(ctx context.Context, domainRequest model.AddMyWeightsDomainReq) error
+	}
+	AggregateWeights interface {
+		Aggregate(ctx context.Context)
+	}
+)
 
 type Service struct {
 	serverside.UnimplementedAvgWeightsServer

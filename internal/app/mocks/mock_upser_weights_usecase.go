@@ -54,3 +54,39 @@ func (mr *MockUpsertWeightsUsecaseMockRecorder) UpsertWeights(ctx, domainRequest
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertWeights", reflect.TypeOf((*MockUpsertWeightsUsecase)(nil).UpsertWeights), ctx, domainRequest)
 }
+
+// MockAggregateWeights is a mock of AggregateWeights interface.
+type MockAggregateWeights struct {
+	ctrl     *gomock.Controller
+	recorder *MockAggregateWeightsMockRecorder
+	isgomock struct{}
+}
+
+// MockAggregateWeightsMockRecorder is the mock recorder for MockAggregateWeights.
+type MockAggregateWeightsMockRecorder struct {
+	mock *MockAggregateWeights
+}
+
+// NewMockAggregateWeights creates a new mock instance.
+func NewMockAggregateWeights(ctrl *gomock.Controller) *MockAggregateWeights {
+	mock := &MockAggregateWeights{ctrl: ctrl}
+	mock.recorder = &MockAggregateWeightsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAggregateWeights) EXPECT() *MockAggregateWeightsMockRecorder {
+	return m.recorder
+}
+
+// Aggregate mocks base method.
+func (m *MockAggregateWeights) Aggregate(ctx context.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Aggregate", ctx)
+}
+
+// Aggregate indicates an expected call of Aggregate.
+func (mr *MockAggregateWeightsMockRecorder) Aggregate(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Aggregate", reflect.TypeOf((*MockAggregateWeights)(nil).Aggregate), ctx)
+}

@@ -30,6 +30,5 @@ func (s *Service) AddMyWeights(ctx context.Context, req *serverside.AddMyWeights
 func validateAddMyWeightsRequest(req *serverside.AddMyWeightsRequest) error {
 	return validation.ValidateStruct(req,
 		validation.Field(&req.ClientId, validation.Required, is.UUID),
-		validation.Field(&req.Layers, validation.Required, validation.Length(layersSize, layersSize)),
 	)
 }

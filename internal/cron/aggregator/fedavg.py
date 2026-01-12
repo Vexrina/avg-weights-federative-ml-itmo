@@ -10,62 +10,80 @@ def read_exact(n: int) -> bytes:
     while len(buf) < n:
         chunk = sys.stdin.buffer.read(n - len(buf))
         if not chunk:
-            raise EOFError("unexpected EOF while reading stdin")
+            raise EOFError("unexpected EOF")
         buf += chunk
     return buf
 
 
-def read_uint64() -> int:
+def read_u64() -> int:
     return struct.unpack("<Q", read_exact(8))[0]
 
 
 def main():
-    # ---- read header ----
-    total_examples = read_uint64()
-    num_entries = read_uint64()
+    # ---- read global weights ----
+    global_len = read_u64()
+    global_bytes = read_exact(global_len)
 
-    # Нечего агрегировать — выходим молча
-    if num_entries == 0 or total_examples == 0:
+    global_state: Dict[str, torch.Tensor] = torch.load(
+        io.BytesIO(global_bytes),
+        map_location="cpu",
+    )
+
+    # ---- read header ----
+    total_examples = read_u64()
+    num_entries = read_u64()
+
+    if total_examples == 0 or num_entries == 0:
+        # нечего агрегировать — возвращаем старые веса
+        out = io.BytesIO()
+        torch.save(global_state, out)
+        sys.stdout.buffer.write(out.getvalue())
         return
 
-    global_delta: Dict[str, torch.Tensor] | None = None
+    delta_global: Dict[str, torch.Tensor] | None = None
 
     for _ in range(num_entries):
-        num_examples = read_uint64()
-        weights_len = read_uint64()
-        weights_bytes = read_exact(weights_len)
+        num_examples = read_u64()
+        delta_len = read_u64()
+        delta_bytes = read_exact(delta_len)
 
         if num_examples == 0:
             continue
 
-        # Δw клиента
         delta = torch.load(
-            io.BytesIO(weights_bytes),
+            io.BytesIO(delta_bytes),
             map_location="cpu",
         )
 
+        if delta.keys() != global_state.keys():
+            raise ValueError("Model keys mismatch")
+
         weight = num_examples / total_examples
 
-        if global_delta is None:
-            # первая дельта
-            global_delta = {
-                k: v.mul(weight)
-                for k, v in delta.items()
+        if delta_global is None:
+            delta_global = {
+                k: delta[k].mul(weight)
+                for k in delta
             }
         else:
-            # защита от несовпадающих моделей
-            if global_delta.keys() != delta.keys():
-                raise ValueError("Model parameter keys mismatch between clients")
+            for k in delta_global:
+                delta_global[k].add_(delta[k], alpha=weight)
 
-            for k in global_delta:
-                global_delta[k].add_(delta[k], alpha=weight)
-
-    if global_delta is None:
+    if delta_global is None:
+        out = io.BytesIO()
+        torch.save(global_state, out)
+        sys.stdout.buffer.write(out.getvalue())
         return
+
+    # ---- apply delta ----
+    new_global = {
+        k: global_state[k] + delta_global[k]
+        for k in global_state
+    }
 
     # ---- serialize result ----
     out = io.BytesIO()
-    torch.save(global_delta, out)
+    torch.save(new_global, out)
     sys.stdout.buffer.write(out.getvalue())
 
 

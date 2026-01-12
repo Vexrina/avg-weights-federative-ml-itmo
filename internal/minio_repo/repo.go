@@ -40,7 +40,7 @@ func (r *minioRepo) PutNewWeights(
 	_, err := r.minioClient.PutObject(
 		ctx,
 		r.bucketName,
-		objectKey,
+		fmt.Sprintf("weights/clients/%s", objectKey),
 		bytes.NewReader(weights),
 		int64(len(weights)),
 		minio.PutObjectOptions{},
@@ -54,7 +54,7 @@ func (r *minioRepo) PutNewWeights(
 
 func (r *minioRepo) AcquireLock(ctx context.Context) (bool, error) {
 	const lockKey = "locks/aggregator.lock"
-	const ttl = 15 * time.Minute
+	const ttl = 1 * time.Minute
 
 	now := time.Now().UTC()
 
@@ -68,7 +68,7 @@ func (r *minioRepo) AcquireLock(ctx context.Context) (bool, error) {
 
 	if err == nil {
 		// lock существует — проверяем TTL
-		expStr := obj.UserMetadata["X-Amz-Meta-Expires_At"]
+		expStr := obj.UserMetadata["Expires_at"]
 		if expStr == "" {
 			return false, nil
 		}
@@ -224,11 +224,22 @@ func (r *minioRepo) readObject(ctx context.Context, key string) ([]byte, error) 
 	return io.ReadAll(obj)
 }
 
+func (r *minioRepo) LoadLastWeight(ctx context.Context) ([]byte, error) {
+	const key = "weights/global/latest.pt"
+
+	obj, err := r.minioClient.GetObject(ctx, r.bucketName, key, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer obj.Close()
+
+	return io.ReadAll(obj)
+}
+
 func (r *minioRepo) SaveReleaseWeights(
 	ctx context.Context,
 	weights []byte,
 ) error {
-
 	const key = "weights/global/latest.pt"
 
 	_, err := r.minioClient.PutObject(
