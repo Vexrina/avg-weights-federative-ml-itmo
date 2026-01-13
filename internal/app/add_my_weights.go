@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
@@ -30,5 +31,15 @@ func (s *Service) AddMyWeights(ctx context.Context, req *serverside.AddMyWeights
 func validateAddMyWeightsRequest(req *serverside.AddMyWeightsRequest) error {
 	return validation.ValidateStruct(req,
 		validation.Field(&req.ClientId, validation.Required, is.UUID),
+		validation.Field(&req.NumExamples, validation.By(func(v interface{}) error {
+			num, ok := v.(uint64)
+			if !ok {
+				return fmt.Errorf("value must be uint64")
+			}
+			if num <= 0 {
+				return fmt.Errorf("must be greater than 0")
+			}
+			return nil
+		})),
 	)
 }

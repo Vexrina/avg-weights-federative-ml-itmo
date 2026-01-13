@@ -249,3 +249,121 @@ func TestSaveReleaseWeights(t *testing.T) {
 	// Чистим после теста
 	_ = repo.minioClient.RemoveObject(ctx, repo.bucketName, key, minio.RemoveObjectOptions{})
 }
+
+func TestLoadLastWeight(t *testing.T) {
+	ctx := context.Background()
+
+	repo := NewMinioRepo(
+		"localhost:9000",
+		"admin",
+		"admin12345",
+		"mybucket",
+	)
+
+	const key = "weights/global/latest.pt"
+
+	tests := []struct {
+		name        string
+		content     []byte
+		expectError bool
+		expected    []byte
+	}{
+		{
+			name:        "valid content",
+			content:     []byte{0x01, 0x02, 0x03, 0x04}, // пример бинарных данных весов
+			expectError: false,
+			expected:    []byte{0x01, 0x02, 0x03, 0x04},
+		},
+		{
+			name:        "empty object",
+			content:     []byte{},
+			expectError: false,
+			expected:    []byte{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Подготавливаем объект в MinIO, если content != nil
+			if tt.content != nil {
+				_, _ = repo.minioClient.PutObject(
+					ctx,
+					repo.bucketName,
+					key,
+					bytes.NewReader(tt.content),
+					int64(len(tt.content)),
+					minio.PutObjectOptions{},
+				)
+			}
+
+			data, err := repo.LoadLastWeight(ctx)
+
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tt.expected, data)
+			}
+
+			// Удаляем объект после теста, чтобы не мешал другим
+			_ = repo.minioClient.RemoveObject(ctx, repo.bucketName, key, minio.RemoveObjectOptions{})
+		})
+	}
+}
+
+func TestGetDownloadURL(t *testing.T) {
+	ctx := context.Background()
+
+	repo := NewMinioRepo(
+		"localhost:9000",
+		"admin",
+		"admin12345",
+		"mybucket",
+	)
+
+	const key = "weights/global/latest.pt"
+
+	tests := []struct {
+		name        string
+		content     []byte
+		expectError bool
+	}{
+		{
+			name:        "object exists",
+			content:     []byte{0x01, 0x02, 0x03},
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if tt.content != nil {
+				_, _ = repo.minioClient.PutObject(
+					ctx,
+					repo.bucketName,
+					key,
+					bytes.NewReader(tt.content),
+					int64(len(tt.content)),
+					minio.PutObjectOptions{},
+				)
+			}
+
+			url, err := repo.GetDownloadURL(ctx)
+
+			if tt.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.NotEmpty(t, url)
+				require.Contains(t, url, repo.bucketName) // базовая проверка, что ссылка корректная
+			}
+
+			// Удаляем объект после теста
+			_ = repo.minioClient.RemoveObject(ctx, repo.bucketName, key, minio.RemoveObjectOptions{})
+		})
+	}
+}

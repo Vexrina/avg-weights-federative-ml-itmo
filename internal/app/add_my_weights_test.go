@@ -37,14 +37,9 @@ func TestService_AddMyWeights(t *testing.T) {
 				usecase: func(ctrl *gomock.Controller, a *args) UpsertWeightsUsecase {
 					m := mocks.NewMockUpsertWeightsUsecase(ctrl)
 					m.EXPECT().UpsertWeights(gomock.Any(), model.AddMyWeightsDomainReq{
-						ClientID: uuid.MustParse(a.req.ClientId),
-						Layers: map[string][]float64{
-							"123": {1, 3, 5},
-							"231": {3, 5, 1},
-							"321": {5, 3, 1},
-							"2":   {5},
-							"1":   {5},
-						},
+						ClientID:    uuid.MustParse(a.req.ClientId),
+						Weights:     a.req.Weights,
+						NumExamples: a.req.NumExamples,
 					}).Return(nil)
 					return m
 				},
@@ -52,14 +47,9 @@ func TestService_AddMyWeights(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				req: &serverside.AddMyWeightsRequest{
-					ClientId: uuid.NewString(),
-					Layers: map[string]*serverside.AddMyWeightsRequest_Layer{
-						"123": {Weights: []float64{1, 3, 5}},
-						"231": {Weights: []float64{3, 5, 1}},
-						"321": {Weights: []float64{5, 3, 1}},
-						"2":   {Weights: []float64{5}},
-						"1":   {Weights: []float64{5}},
-					},
+					ClientId:    uuid.NewString(),
+					Weights:     []byte("absdfg"),
+					NumExamples: 2,
 				},
 			},
 			errText: "",
@@ -70,14 +60,9 @@ func TestService_AddMyWeights(t *testing.T) {
 				usecase: func(ctrl *gomock.Controller, a *args) UpsertWeightsUsecase {
 					m := mocks.NewMockUpsertWeightsUsecase(ctrl)
 					m.EXPECT().UpsertWeights(gomock.Any(), model.AddMyWeightsDomainReq{
-						ClientID: uuid.MustParse(a.req.ClientId),
-						Layers: map[string][]float64{
-							"123": {1, 3, 5},
-							"231": {3, 5, 1},
-							"321": {5, 3, 1},
-							"2":   {5},
-							"1":   {5},
-						},
+						ClientID:    uuid.MustParse(a.req.ClientId),
+						Weights:     a.req.Weights,
+						NumExamples: a.req.NumExamples,
 					}).Return(errors.New("some error"))
 					return m
 				},
@@ -85,14 +70,9 @@ func TestService_AddMyWeights(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				req: &serverside.AddMyWeightsRequest{
-					ClientId: uuid.NewString(),
-					Layers: map[string]*serverside.AddMyWeightsRequest_Layer{
-						"123": {Weights: []float64{1, 3, 5}},
-						"231": {Weights: []float64{3, 5, 1}},
-						"321": {Weights: []float64{5, 3, 1}},
-						"2":   {Weights: []float64{5}},
-						"1":   {Weights: []float64{5}},
-					},
+					ClientId:    uuid.NewString(),
+					Weights:     []byte("absdfg"),
+					NumExamples: uint64(2),
 				},
 			},
 			errText: "some error",
@@ -108,30 +88,12 @@ func TestService_AddMyWeights(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				req: &serverside.AddMyWeightsRequest{
-					ClientId: uuid.NewString(),
-					Layers: map[string]*serverside.AddMyWeightsRequest_Layer{
-						"123": {Weights: []float64{1, 3, 5}},
-						"231": {Weights: []float64{3, 5, 1}},
-					},
+					ClientId:    "bad uuid",
+					Weights:     []byte("absdfg"),
+					NumExamples: 0,
 				},
 			},
-			errText: "layers: the length must be exactly 5.",
-		},
-		{
-			name: "another validation error",
-			fields: fields{
-				usecase: func(ctrl *gomock.Controller, _ *args) UpsertWeightsUsecase {
-					m := mocks.NewMockUpsertWeightsUsecase(ctrl)
-					return m
-				},
-			},
-			args: args{
-				ctx: context.Background(),
-				req: &serverside.AddMyWeightsRequest{
-					ClientId: "asd",
-				},
-			},
-			errText: "client_id: must be a valid UUID; layers: cannot be blank.",
+			errText: "client_id: must be a valid UUID; num_examples: must be greater than 0.",
 		},
 	}
 	for _, tt := range tests {

@@ -44,7 +44,9 @@ func main() {
 	aggr := aggregator.NewAggregator(minioRepo, pathToPythonScript, pythonBinPath)
 
 	amw := usecase.NewUpserter(minioRepo)
-	service := app.NewService(amw)
+	grw := usecase.NewGetter(minioRepo)
+
+	service := app.NewService(amw, grw)
 	server := grpc.NewServer()
 
 	serverside.RegisterAvgWeightsServer(server, service)

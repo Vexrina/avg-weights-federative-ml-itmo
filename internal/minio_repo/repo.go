@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -254,6 +255,19 @@ func (r *minioRepo) SaveReleaseWeights(
 	)
 
 	return err
+}
+
+func (r *minioRepo) GetDownloadURL(ctx context.Context) (string, error) {
+	const key = "weights/global/latest.pt"
+
+	// Генерируем presigned URL на 5 минут
+	reqParams := make(url.Values)
+	downloadUrl, err := r.minioClient.PresignedGetObject(ctx, r.bucketName, key, 5*time.Minute, reqParams)
+	if err != nil {
+		return "", err
+	}
+
+	return downloadUrl.String(), nil
 }
 
 type WeightObject struct {

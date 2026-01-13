@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=add_my_weights_usecase.go -destination=mocks/mock_weights_repo.go -package=mocks
 type (
 	WeightsRepo interface {
 		PutNewWeights(
