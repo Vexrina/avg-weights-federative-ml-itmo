@@ -26,10 +26,11 @@ type (
 		numExamples uint64
 	}
 	aggregator struct {
-		minioRepo     MinioRepo
-		entries       []accumulatorEntry
-		totalExamples uint64
-		pythonPath    string
+		minioRepo          MinioRepo
+		entries            []accumulatorEntry
+		totalExamples      uint64
+		pathToPythonScript string
+		pythonBinPath      string
 	}
 	fedAvgPayload struct {
 		TotalExamples uint64
@@ -39,8 +40,12 @@ type (
 
 const aggInterval = time.Minute * 10
 
-func NewAggregator(minioRepo MinioRepo) *aggregator {
-	return &aggregator{minioRepo: minioRepo, pythonPath: "internal/cron/aggregator/"}
+func NewAggregator(minioRepo MinioRepo, pathToPythonScript, pythonBinPath string) *aggregator {
+	return &aggregator{
+		minioRepo:          minioRepo,
+		pathToPythonScript: pathToPythonScript, //"internal/cron/aggregator/",
+		pythonBinPath:      pythonBinPath,      // ".venv/bin/python",
+	}
 }
 
 func (a *aggregator) Aggregate(ctx context.Context) {

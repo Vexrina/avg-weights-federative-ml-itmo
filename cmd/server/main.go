@@ -19,28 +19,38 @@ import (
 	"avg_weights_fed_ml_itmo/pkg/serverside"
 )
 
-const grpcPort = "9090"
-
 func main() {
 	ctx := context.Background()
 
+	// attention: фоллбеки предназначены для локального запуска, не для контейнерного запуска сервиса!
+	var (
+		minioEndpoint  = getEnv("MINIO_ENDPOINT", "localhost:9000")
+		minioAccessKey = getEnv("MINIO_ACCESS_KEY", "admin")
+		minioSecretKey = getEnv("MINIO_SECRET_KEY", "admin12345")
+		minioBucket    = getEnv("MINIO_BUCKET", "mybucket")
+	)
 	minioRepo := minio_repo.NewMinioRepo(
-		"localhost:9000",
-		"admin",
-		"admin12345",
-		"mybucket",
+		minioEndpoint,
+		minioAccessKey,
+		minioSecretKey,
+		minioBucket,
 	)
 
-	aggr := aggregator.NewAggregator(minioRepo)
+	var (
+		pathToPythonScript = getEnv("PATH_TO_PYTHON_SCRIPT", "internal/cron/aggregator/")
+		pythonBinPath      = getEnv("PYTHON_BIN_PATH", ".venv/bin/python")
+	)
+
+	aggr := aggregator.NewAggregator(minioRepo, pathToPythonScript, pythonBinPath)
 
 	amw := usecase.NewUpserter(minioRepo)
-
 	service := app.NewService(amw)
 	server := grpc.NewServer()
 
 	serverside.RegisterAvgWeightsServer(server, service)
 	reflection.Register(server)
 
+	grpcPort := getEnv("GRPC_PORT", "8081")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -62,4 +72,11 @@ func main() {
 	<-quit
 	log.Println("Shutting down gRPC server...")
 	server.GracefulStop()
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPutNewWeights_Parallel(t *testing.T) {
+func TestPutNewWeights(t *testing.T) {
 	ctx := context.Background()
 
 	// Настройка тестового MinIO (можно использовать локальный контейнер или тестовый bucket)
@@ -47,7 +47,7 @@ func TestPutNewWeights_Parallel(t *testing.T) {
 				require.NoError(t, err)
 
 				// Проверяем, что объект реально появился
-				obj, err := repo.minioClient.GetObject(ctx, repo.bucketName, key, minio.GetObjectOptions{})
+				obj, err := repo.minioClient.GetObject(ctx, repo.bucketName, "weights/clients/"+key, minio.GetObjectOptions{})
 				require.NoError(t, err)
 				defer obj.Close()
 

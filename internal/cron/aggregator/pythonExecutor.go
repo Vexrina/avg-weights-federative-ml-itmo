@@ -11,7 +11,7 @@ import (
 )
 
 func (a *aggregator) finalize(ctx context.Context, latestWeight []byte) ([]byte, error) {
-	globalWeights, err := runPythonFedAvg(ctx, latestWeight, fedAvgPayload{Entries: a.entries, TotalExamples: a.totalExamples}, a.pythonPath)
+	globalWeights, err := runPythonFedAvg(ctx, latestWeight, fedAvgPayload{Entries: a.entries, TotalExamples: a.totalExamples}, a.pathToPythonScript, a.pythonBinPath)
 	if err != nil {
 		return nil, err
 	}
@@ -23,12 +23,12 @@ func runPythonFedAvg(
 	ctx context.Context,
 	latestWeight []byte,
 	payload fedAvgPayload,
-	pythonPath string,
+	pythonPath, pythonBinPath string,
 ) ([]byte, error) {
 
 	cmd := exec.CommandContext(
 		ctx,
-		".venv/bin/python",
+		pythonBinPath,
 		fmt.Sprintf("%sfedavg.py", pythonPath),
 	)
 

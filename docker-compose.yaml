@@ -34,6 +34,23 @@ services:
         mc mb -p myminio/mybucket || true
         /init_weights.sh
 
+  avgsher:
+    container_name: avgsher
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    depends_on:
+      createbuckets:
+        condition: service_completed_successfully
+    environment:
+      PYTHON_BIN_PATH: "python"
+      GRPC_PORT: "8081"
+      MINIO_ENDPOINT: "minio:9000"
+      PATH_TO_PYTHON_SCRIPT: ""
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+
 volumes:
   minio_data:
-  postgres_data:
