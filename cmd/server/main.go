@@ -47,7 +47,13 @@ func main() {
 	grw := usecase.NewGetter(minioRepo)
 
 	service := app.NewService(amw, grw)
-	server := grpc.NewServer()
+	
+	// Increase gRPC message size limits to 10MB for model weights
+	maxMsgSize := 10 * 1024 * 1024 // 10MB
+	server := grpc.NewServer(
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize),
+	)
 
 	serverside.RegisterAvgWeightsServer(server, service)
 	reflection.Register(server)
